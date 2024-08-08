@@ -1,0 +1,177 @@
+class IssueModal {
+  constructor() {
+    this.submitButton = 'button[type="submit"]';
+    this.issueModal = '[data-testid="modal:issue-create"]';
+    this.issueDetailModal = '[data-testid="modal:issue-details"]';
+    this.title = 'input[name="title"]';
+    this.formFieldTitle = '[data-testid="form-field:title"]';
+    this.issueType = '[data-testid="select:type"]';
+    this.issueTypeOption = '[data-testid="select-option"]';
+    this.issueIcon = '[data-testid="icon"]';
+    this.descriptionField = '.ql-editor';
+    this.reporter = '[data-testid="select:reporterId"]';
+    this.assignee = '[data-testid="select:userIds"]';
+    this.backlogList = '[data-testid="board-list:backlog"]';
+    this.issuesList = '[data-testid="list-issue"]';
+    this.deleteButton = '[data-testid="icon:trash"]';
+    this.deleteButtonName = 'Delete issue';
+    this.cancelDeletionButtonName = 'Cancel';
+    this.confirmationPopup = '[data-testid="modal:confirm"]';
+    this.closeDetailModalButton = '[data-testid="icon:close"]';
+    this.selectOptionStory = '[data-testid="select-option:Story"]';
+    this.selectOptionBug = '[data-testid="select-option:Bug"]';
+    this.priorityDropdown = '[data-testid="select:priority"]';
+    this.priorityOption = '[data-testid="select-option"]';
+    this.selectPriorityLow = '[data-testid="select-option:Low"]';
+    this.selectPriorityMedium = '[data-testid="select-option:Medium"]';
+    this.selectPriorityHigh = '[data-testid="select-option:High"]';
+    this.selectPriorityHighest = '[data-testid="select-option:Highest"]';
+    this.storyIcon = '[data-testid="icon:story"]';
+    this.bugIcon = '[data-testid="icon:bug"]';
+    this.taskIcon = '[data-testid="icon:task"]';
+    this.lordGabenAvatar = '[data-testid="avatar:Lord Gaben"]';
+    this.babyYodaAvatar = '[data-testid="avatar: Baby Yoda"]';
+    this.successMessage = 'Issue has been successfully created.';
+  }
+
+  getIssueModal() {
+    return cy.get(this.issueModal);
+  }
+
+  getIssueDetailModal() {
+    return cy.get(this.issueDetailModal);
+  }
+
+  selectIssueType(issueType) {
+    cy.get(this.issueType).click();
+    cy.get(`[data-testid="select-option:${issueType}"]`)
+      .should('be.visible')
+      .trigger('mouseover')
+      .wait(200)
+      .trigger('click');
+  }
+
+  selectPriority(priority) {
+    const selectedPriority = priority || 'Medium';
+    cy.get(this.priorityDropdown).click();
+    cy.get(`[data-testid="select-option:${selectedPriority}"]`)
+      .should('be.visible')
+      .click();
+
+    cy.get(this.priorityDropdown)
+      .contains(selectedPriority)
+      .should('be.visible');
+  }
+
+  selectReporter(reporterName) {
+    cy.get(this.reporter).click('bottomRight');
+    cy.get(`[data-testid="select-option:${reporterName}"]`).click();
+  }
+
+  selectAssignee(assigneeName) {
+    cy.get(this.assignee).click('bottomRight');
+    cy.get(`[data-testid="select-option:${assigneeName}"]`).click();
+  }
+
+  editTitle(title) {
+    cy.get(this.title).debounced('type', title);
+  }
+
+  editDescription(description) {
+    cy.get(this.descriptionField).type(description);
+  }
+
+  createIssue(issueDetails) {
+    this.getIssueModal().within(() => {
+      this.selectIssueType(issueDetails.type);
+      cy.wait(500);
+      this.editDescription(issueDetails.description);
+      this.editTitle(issueDetails.title);
+      this.selectReporter(issueDetails.reporter);
+      this.selectAssignee(issueDetails.assignee);
+      cy.get(this.submitButton).click();
+    });
+  }
+
+  ensureIssueIsCreated(expectedAmountIssues, issueDetails) {
+    cy.get(this.issueModal).should('not.exist');
+    cy.contains(this.successMessage).should('be.visible');
+    cy.reload();
+    cy.contains('Issue has been successfully created.').should('not.exist');
+
+    cy.get(this.backlogList)
+      .should('be.visible')
+      .and('have.length', '1')
+      .within(() => {
+        cy.get(this.issuesList)
+          .should('have.length', expectedAmountIssues)
+          .first()
+          .find('p')
+          .contains(issueDetails.title);
+        cy.get(`[data-testid="avatar:${issueDetails.assignee}"]`).should(
+          'be.visible'
+        );
+        cy.get(
+          `[data-testid="icon:${issueDetails.type.toLowerCase()}"]`
+        ).should('be.visible');
+      });
+  }
+
+  ensureIssueIsVisibleOnBoard(issueTitle) {
+    cy.get(this.issueDetailModal).should('not.exist');
+    cy.reload();
+    cy.contains(issueTitle).should('be.visible');
+  }
+
+  ensureIssueIsNotVisibleOnBoard(issueTitle) {
+    cy.get(this.issueDetailModal).should('not.exist');
+    cy.reload();
+    cy.contains(issueTitle).should('not.exist');
+  }
+
+  validateIssueVisibilityState(issueTitle, isVisible = true) {
+    cy.get(this.issueDetailModal).should('not.exist');
+    cy.reload();
+    cy.get(this.backlogList).should('be.visible');
+    if (isVisible) cy.contains(issueTitle).should('be.visible');
+    if (!isVisible) cy.contains(issueTitle).should('not.exist');
+  }
+
+  validateTitleIsRequiredFieldIfMissing() {
+    cy.get(this.issueModal).within(() => {
+      cy.get(this.submitButton).click();
+      cy.get(this.formFieldTitle).should('contain', 'This field is required');
+    });
+  }
+
+  clickDeleteButton() {
+    cy.get(this.deleteButton).click();
+    cy.get(this.confirmationPopup).should('be.visible');
+  }
+
+  confirmDeletion() {
+    cy.get(this.confirmationPopup).within(() => {
+      cy.contains(this.deleteButtonName).click();
+    });
+    cy.get(this.confirmationPopup).should('not.exist');
+    cy.get(this.backlogList).should('be.visible');
+  }
+
+  cancelDeletion() {
+    cy.get(this.confirmationPopup).within(() => {
+      cy.contains(this.cancelDeletionButtonName).click();
+    });
+    cy.get(this.confirmationPopup).should('not.exist');
+    cy.get(this.issueDetailModal).should('be.visible');
+  }
+
+  closeDetailModal() {
+    cy.get(this.issueDetailModal)
+      .get(this.closeDetailModalButton)
+      .first()
+      .click();
+    cy.get(this.issueDetailModal).should('not.exist');
+  }
+}
+
+export default new IssueModal();
