@@ -1,0 +1,3 @@
+class IssueDetailsEditModal {
+  constructor() {}
+}
