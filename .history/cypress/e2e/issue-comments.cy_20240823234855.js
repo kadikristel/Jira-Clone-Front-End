@@ -1,7 +1,3 @@
-/* In order to run this code successfully please compare Your CommentModal.js 
-    with mine: https://github.com/kadikristel/Jira-Clone-Front-End/blob/master/cypress/pages/CommentModal.js
-*/
-
 import CommentModal from '../pages/CommentModal';
 import { faker } from '@faker-js/faker';
 

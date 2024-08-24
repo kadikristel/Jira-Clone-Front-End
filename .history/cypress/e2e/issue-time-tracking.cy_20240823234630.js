@@ -1,7 +1,3 @@
-/* In order to run this code successfully please compare Your TimeTrackingModal.js 
-    with mine: https://github.com/kadikristel/Jira-Clone-Front-End/blob/master/cypress/pages/TimeTrackingModal.js
-*/
-
 import TimeTrackingModal from '../pages/TimeTrackingModal';
 import { faker } from '@faker-js/faker';
 

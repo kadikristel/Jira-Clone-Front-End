@@ -126,6 +126,7 @@ describe('Time tracking functionality for new issue using POM approach', () => {
     });
 
     TimeTrackingModal.getStopwatchIcon('No time logged');
+    TimeTrackingModal.ensureStopwatchIconNotContainTime(editedHours);
   });
 });
 
@@ -139,7 +140,7 @@ describe('Time estimation and tracking functionalities for existing issue using 
       });
   });
 
-  it.only('Should add, edit and remove the time estimation and tracking for the issue', () => {
+  it('Should add, edit and remove the time estimation and tracking for the issue', () => {
     const inputHours = '10';
     const editedHours = '20';
     const timeSpent = '2';
